@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"log"
 	"os"
@@ -16,6 +17,10 @@ func main() {
 	flag.StringVar(&data.Docker, "docker", "github.com/username/repo", "Name of the docker container with registry e.g. github.com/hello-world")
 	flag.Parse()
 
+	if err := data.Validate(); err != nil {
+		log.Fatal(err)
+	}
+
 	err := t.Execute(os.Stdout, data)
 	if err != nil {
 		log.Println("executing template:", err)
@@ -29,6 +34,16 @@ go run github.com/kastenpotential/mage-utils/gen/travis-ci <repository> <docker>
 type jobData struct {
 	Repository string
 	Docker     string
+}
+
+func (jd jobData) Validate() error {
+	if jd.Repository == "" {
+		return errors.New("no repository given")
+	}
+	if jd.Docker == "" {
+		return errors.New("no docker given")
+	}
+	return nil
 }
 
 const travisGo = `
